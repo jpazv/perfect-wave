@@ -1,8 +1,27 @@
-# Perfect Wave
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/media/logo-dark.svg">
+    <img src="docs/media/logo.svg" width="180" alt="Perfect Wave logo">
+  </picture>
+</p>
 
-A side pane mod for [Claude Code](https://claude.com/claude-code). One pane, four tabs: a live file tree, every skill you have, a skill hunter with a review step, and a session dashboard. On top of that, an effort router that picks the reasoning effort per request and a few git guardrails enforced by the engine.
+<h1 align="center">Perfect Wave</h1>
 
-<p align="center"><img src="docs/media/tour.gif" width="480" alt="Perfect Wave tour: files, skills, effort, hunter and status tabs"></p>
+<p align="center">
+  <em>One pane beside Claude Code. Ride the session instead of chasing it.</em>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Claude%20Code-mod-D97757?style=flat-square" alt="Claude Code mod">
+  <img src="https://img.shields.io/badge/tabs-files%20%C2%B7%20skills%20%C2%B7%20hunter%20%C2%B7%20status-111111?style=flat-square" alt="Tabs">
+  <img src="https://img.shields.io/badge/license-MIT-111111?style=flat-square" alt="MIT license">
+</p>
+
+<p align="center">
+  <img src="docs/media/tour.gif" width="520" alt="Perfect Wave tour: files, skills, effort, hunter and status">
+</p>
+
+A side pane mod for [Claude Code](https://claude.com/claude-code): a live file tree, every skill you have, a skill hunter with a review step, and a session dashboard. On top of that, an effort router that picks the reasoning effort per request and a few git guardrails enforced by the engine.
 
 ## What's inside
 
@@ -26,11 +45,29 @@ A side pane mod for [Claude Code](https://claude.com/claude-code). One pane, fou
 <td><b>Hunter</b>: search, review, then install<br><img src="docs/media/hunter.png" alt="Hunter tab"></td>
 <td><b>Status</b>: cost, context, limits, savings<br><img src="docs/media/status.png" alt="Status tab"></td>
 </tr>
-<tr>
-<td><b>Effort</b>: pinned at high<br><img src="docs/media/effort-high.png" alt="Effort high"></td>
-<td><b>Effort</b>: pinned at low<br><img src="docs/media/effort-low.png" alt="Effort low"></td>
-</tr>
 </table>
+
+## Effort levels
+
+The card at the top of the pane shows the effort in use, with Clawd acting it out. `auto` lets the router choose per request; clicking a level (or `/wave-effort <level>`) pins it from the next request on.
+
+| Level | Clawd | When the router picks it | Cost |
+|---|---|---|---|
+| `low` | napping | Plain text work: translate, rewrite, summarize, quick questions, git and card chores | lowest |
+| `medium` | standing | Routine code: a small, local change; also runs the steps of a plan you approved | moderate |
+| `high` | running | Heavy or risky work: architecture, auth, data, deploy, broad refactors. Asks for a plan first | higher |
+| `xhigh` | full speed | Never automatic, only when you pin it | high |
+| `max` | taking off | Never automatic, only when you pin it | highest |
+
+How `auto` decides:
+
+1. Each prompt gets a score from risk words, code words, files named, scope and length.
+2. When the score is ambiguous and risk-free, a tiny Haiku call (5 tokens, no history) breaks the tie.
+3. A bare approval ("ok", "go") inherits the last decision instead of being scored.
+4. Only `effort` changes, never the model, so the prompt cache stays warm.
+5. If a lowered turn struggles (many steps or tool errors), lowering pauses for 3 turns.
+
+`inherit` keeps your own `/effort`; `off` turns the router off.
 
 ## Install
 
