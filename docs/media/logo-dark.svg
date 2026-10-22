@@ -1,6 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" fill="none" stroke-linecap="round" stroke-linejoin="round">
-  <title>Perfect Wave</title>
-  <path d="M72 352C150 352 190 300 226 222C262 144 330 108 392 124C446 138 462 204 424 236C392 262 348 246 346 212C344 188 362 172 384 176" stroke="#D97757" stroke-width="44"/>
-  <path d="M72 424C120 404 168 404 216 424C264 444 312 444 360 424C384 412 404 408 420 410" stroke="#FAFAFA" stroke-width="28"/>
-  <rect x="456" y="388" width="28" height="56" rx="5" fill="#FAFAFA"/>
-</svg>
