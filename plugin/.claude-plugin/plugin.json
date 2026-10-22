@@ -1,0 +1,8 @@
+{
+  "name": "perfect-wave",
+  "version": "1.0.0",
+  "description": "A side pane for Claude Code: browse skills, watch your files change live, hunt and review new skills, track tokens, cache and limits, route effort by task difficulty, and keep git guardrails on.",
+  "license": "MIT",
+  "author": { "name": "jpazv" },
+  "types": "./types/index.d.ts"
+}

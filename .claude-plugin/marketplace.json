@@ -1,0 +1,16 @@
+{
+  "name": "perfect-wave",
+  "owner": { "name": "jpazv" },
+  "metadata": {
+    "description": "Perfect Wave: a side pane mod for Claude Code.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "perfect-wave",
+      "source": "./plugin",
+      "version": "1.0.0",
+      "description": "Skills, live file tree, skill hunter, session stats, effort router and git guardrails in one pane."
+    }
+  ]
+}
