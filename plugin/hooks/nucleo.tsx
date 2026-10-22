@@ -10,7 +10,7 @@ const SONDAGEM_MS = 2000
 const GIT_A_CADA = 5 // ciclos de sondagem entre dois `git status`
 const FEED_MAX = 20
 
-export const aba = atom({ plugin: 'perfect-wave', key: 'aba' } as const, 'skills' as Aba)
+export const aba = atom({ plugin: 'perfect-wave', key: 'aba' } as const, 'files' as Aba)
 export const filtro = atom({ plugin: 'perfect-wave', key: 'filtro' } as const, '')
 export const skills = atom({ plugin: 'perfect-wave', key: 'skills' } as const, [] as Skill[])
 export const info = atom({ plugin: 'perfect-wave', key: 'info' } as const, { esforco: '—' } as Info)

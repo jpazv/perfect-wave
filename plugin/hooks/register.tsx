@@ -19,7 +19,7 @@ import type { Mudanca } from './pastas.ts'
 const P = 'perfect-wave' as const
 const PANE = 'perfect-wave'
 // os mesmos átomos do núcleo (mesmo plugin e chave): o motor quer a referência escrita em cada arquivo que lê ou escreve
-const aba = atom({ plugin: 'perfect-wave', key: 'aba' } as const, 'skills' as Aba)
+const aba = atom({ plugin: 'perfect-wave', key: 'aba' } as const, 'files' as Aba)
 const filtro = atom({ plugin: 'perfect-wave', key: 'filtro' } as const, '')
 const skills = atom({ plugin: 'perfect-wave', key: 'skills' } as const, [] as Skill[])
 const info = atom({ plugin: 'perfect-wave', key: 'info' } as const, { esforco: '—' } as Info)
@@ -119,7 +119,7 @@ async function desenhar($: any, e: any) {
     const W = Math.max(40, e.props?.bodyColumns ?? 60)
     const atual = await read($, aba)
     const inf = await read($, info)
-    const abas: [Aba, string][] = [['skills', 'Skills'], ['files', 'Files'], ['hunter', 'Hunter'], ['status', 'Status']]
+    const abas: [Aba, string][] = [['files', 'Files'], ['skills', 'Skills'], ['hunter', 'Hunter'], ['status', 'Status']]
     const md = await read($, modo)
     const cartao = (cor: string, titulo: string, direita: any, corpo: any, key: string, largura = W) => (
       <Box key={key} flexDirection="column" borderStyle="round" borderColor={cor} paddingX={1} width={largura}>
