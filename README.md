@@ -83,7 +83,7 @@ A file tree in the style of an editor explorer, built for watching what Claude d
 - **Pins.** `+ pin this` keeps a folder in the bottom bar for one-click jumps.
 - **Icons.** With a Nerd Font installed, files get colored type icons and folders get folder glyphs; without one, plain colored markers.
 
-Folders with more than 400 entries are not expanded, and `node_modules`, `.git`, `dist`, `.next`, `coverage` and `__pycache__` are skipped.
+Folders with more than 300 entries are not expanded, and `node_modules`, `.git`, `dist`, `.next`, `coverage` and `__pycache__` are skipped.
 
 ## Skills
 
