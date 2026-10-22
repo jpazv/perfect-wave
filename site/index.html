@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Perfect Wave</title>
+<meta name="description" content="A side pane mod for Claude Code: live file tree, skills, skill hunter, session stats, effort router and git guardrails.">
+<meta property="og:title" content="Perfect Wave">
+<meta property="og:description" content="One pane beside Claude Code. Ride the session instead of chasing it.">
+<meta property="og:image" content="media/social-preview.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="color-scheme" content="dark">
+<link rel="icon" href="media/logo.png">
+<link rel="preload" href="fonts/bricolage-grotesque-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face { font-family: "Bricolage"; src: url(fonts/bricolage-grotesque-latin-wght-normal.woff2) format("woff2"); font-weight: 200 800; font-display: swap; }
+@font-face { font-family: "JB Mono"; src: url(fonts/jetbrains-mono-latin-wght-normal.woff2) format("woff2"); font-weight: 100 800; font-display: swap; }
+
+:root {
+  --ground: #171311;
+  --ground-2: #201a17;
+  --rule: #3a302b;
+  --foam: #f1e6d3;
+  --foam-dim: #b9ab98;
+  --clay: #d97757;
+  --clay-deep: #b85d3f;
+  --ink-on-clay: #1c1210;
+  --deny: #ec6a5e;
+  --ask: #f2c14e;
+  --saved: #7fcf86;
+  --seen: #79b8ff;
+  --review: #b9a0ff;
+  --mono: "JB Mono", ui-monospace, Menlo, monospace;
+  --sans: "Bricolage", ui-sans-serif, system-ui, sans-serif;
+  --gutter: clamp(16px, 4vw, 56px);
+  --ease: cubic-bezier(.16, 1, .3, 1);
+}
+* { box-sizing: border-box; }
+html { background: var(--ground); scrollbar-color: var(--rule) var(--ground); }
+body { margin: 0; background: var(--ground); color: var(--foam); font: 400 1.0625rem/1.6 var(--sans); -webkit-font-smoothing: antialiased; }
+::selection { background: var(--clay); color: var(--ink-on-clay); }
+a { color: var(--foam); text-decoration-color: var(--clay); text-underline-offset: .2em; text-decoration-thickness: 1px; }
+a:hover { text-decoration-thickness: 2px; }
+:focus-visible { outline: 2px solid var(--clay); outline-offset: 3px; border-radius: 2px; }
+code, kbd, .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+img { max-width: 100%; height: auto; display: block; }
+
+.wrap { max-width: 1240px; margin: 0 auto; padding: 0 var(--gutter); }
+
+/* top bar */
+.bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--rule); }
+.brand { display: flex; align-items: center; gap: 12px; text-decoration: none; font-weight: 650; letter-spacing: -.01em; }
+.brand img { width: 32px; height: 32px; border-radius: 8px; }
+.bar nav { display: flex; gap: 22px; font-size: .95rem; }
+.bar nav a { text-decoration: none; color: var(--foam-dim); }
+.bar nav a:hover { color: var(--foam); }
+
+/* hero */
+.hero { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: clamp(28px, 5vw, 72px); align-items: center; padding: clamp(40px, 7vw, 96px) 0 clamp(36px, 5vw, 64px); }
+h1 { font-size: clamp(3rem, 8.4vw, 6rem); line-height: .92; letter-spacing: -.04em; font-weight: 720; margin: 0 0 24px; font-variation-settings: "wdth" 85; text-wrap: balance; }
+.lede { font-size: clamp(1.2rem, 2.1vw, 1.55rem); line-height: 1.4; color: var(--foam-dim); max-width: 30ch; margin: 0 0 36px; text-wrap: pretty; }
+.lede strong { color: var(--foam); font-weight: 600; }
+.tour { border-radius: 14px; overflow: hidden; box-shadow: 0 30px 60px -20px rgb(0 0 0 / .7), 0 0 0 1px var(--rule); background: #1e1e1e; }
+
+/* install band */
+.install { background: var(--clay); color: var(--ink-on-clay); border-radius: 14px; padding: 20px 22px 16px; box-shadow: 0 18px 40px -20px rgb(0 0 0 / .6); }
+.install p { margin: 0 0 12px; font-weight: 620; font-size: .98rem; }
+.cmd { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid rgb(28 18 16 / .22); }
+.cmd code { flex: 1; min-width: 0; font-size: clamp(.8rem, 1.5vw, .95rem); overflow-wrap: anywhere; }
+.cmd code::before { content: "$ "; opacity: .55; }
+.copy { flex: none; display: inline-flex; align-items: center; gap: 6px; font: 600 .82rem/1.4 var(--mono); color: var(--foam); background: var(--ink-on-clay); border: 0; border-radius: 8px; padding: 7px 11px; cursor: pointer; transition: transform .2s var(--ease), background .2s; }
+.copy:hover { background: #000; }
+.copy:active { transform: scale(.96); }
+.copy svg { width: 14px; height: 14px; }
+.copy[data-done] { background: #2c4a2f; }
+.install small { display: block; margin-top: 6px; font-size: .85rem; }
+
+/* ledger */
+.ledger-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 56px 0 18px; border-bottom: 1px solid var(--rule); }
+h2 { font-size: clamp(1.8rem, 3.6vw, 2.6rem); line-height: 1.05; letter-spacing: -.03em; font-weight: 680; margin: 0; text-wrap: balance; }
+.ledger-head p { margin: 0; color: var(--foam-dim); max-width: 46ch; }
+.log { list-style: none; margin: 0; padding: 0; }
+.log details { border-bottom: 1px solid var(--rule); }
+.log summary { list-style: none; display: grid; grid-template-columns: 5.5rem minmax(0, 1fr) auto; gap: 20px; align-items: center; padding: 18px 8px; cursor: pointer; transition: background .25s var(--ease); }
+.log summary::-webkit-details-marker { display: none; }
+.log summary:hover { background: var(--ground-2); }
+.log details[open] summary { background: var(--ground-2); }
+.t { color: #a09382; font-size: .85rem; }
+.act { font-family: var(--mono); font-size: clamp(.88rem, 1.6vw, 1.05rem); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.act span { color: var(--foam-dim); }
+.v { font: 700 .82rem/1 var(--mono); letter-spacing: .04em; padding: 7px 10px; border-radius: 6px; border: 1px solid currentColor; white-space: nowrap; }
+.v.deny { color: var(--deny); } .v.ask { color: var(--ask); } .v.saved { color: var(--saved); } .v.seen { color: var(--seen); } .v.review { color: var(--review); } .v.open { color: var(--clay); }
+.body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: clamp(24px, 4vw, 56px); padding: 8px 8px 40px 6.75rem; }
+.body h3 { font-size: 1.45rem; letter-spacing: -.02em; line-height: 1.15; margin: 14px 0 12px; font-weight: 660; }
+.body p, .body li { color: #d8ccb9; max-width: 62ch; }
+.body ul { padding-left: 1.1em; margin: 0; }
+.body li { margin: 0 0 8px; }
+.body li::marker { color: var(--clay); }
+.shot { border-radius: 12px; overflow: hidden; box-shadow: 0 24px 48px -24px rgb(0 0 0 / .8), 0 0 0 1px var(--rule); align-self: start; }
+table { border-collapse: collapse; width: 100%; font-size: .92rem; }
+td { padding: 10px 12px 10px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+td:first-child { font-family: var(--mono); font-size: .82rem; color: var(--foam); }
+td:last-child { white-space: nowrap; font: 700 .8rem/1.4 var(--mono); }
+.note { font-size: .85rem; color: #a09382; }
+
+/* one authored moment: verdict stamps land in sequence once */
+@media (prefers-reduced-motion: no-preference) {
+  .js .log .v { animation: stamp .7s var(--ease) both; animation-delay: calc(var(--i) * 110ms + 250ms); }
+  .js .log details[open] .body { animation: unfold .5s var(--ease) both; }
+}
+@keyframes stamp { from { clip-path: inset(0 100% 0 0); filter: blur(3px); } to { clip-path: inset(0 0 0 0); filter: blur(0); } }
+@keyframes unfold { from { opacity: .4; transform: translateY(-6px); } }
+
+/* close */
+.close { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(28px, 5vw, 72px); padding: 80px 0 56px; align-items: start; }
+.close h2 { font-size: clamp(2.2rem, 5vw, 3.6rem); margin-bottom: 18px; }
+.facts { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule); }
+.facts li { display: flex; justify-content: space-between; gap: 16px; padding: 13px 0; border-bottom: 1px solid var(--rule); color: var(--foam-dim); }
+.facts b { color: var(--foam); font-weight: 600; text-align: right; }
+footer { border-top: 1px solid var(--rule); padding: 24px 0 40px; color: #a09382; font-size: .9rem; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+@media (max-width: 900px) {
+  .hero, .close, .body { grid-template-columns: minmax(0, 1fr); }
+  .body { padding-left: 8px; }
+  .bar nav a:not(.gh) { display: none; }
+}
+@media (max-width: 560px) {
+  .log summary { grid-template-columns: minmax(0, 1fr) auto; gap: 12px; }
+  .t { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="bar">
+    <a class="brand" href="#top"><img src="media/logo.png" alt="" width="32" height="32">Perfect Wave</a>
+    <nav aria-label="Primary">
+      <a href="#log">What it does</a>
+      <a href="#install">Install</a>
+      <a class="gh" href="https://github.com/jpazv/perfect-wave">GitHub</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div>
+        <h1>One pane beside Claude Code.</h1>
+        <p class="lede">Ride the session instead of chasing it. <strong>See what Claude touches, spend less per turn, and stop the commands you never meant to run.</strong></p>
+        <div class="install" id="install">
+          <p>Install in two commands, then <code>/reload-plugins</code>.</p>
+          <div class="cmd"><code>claude plugin marketplace add jpazv/perfect-wave</code><button class="copy" type="button" aria-label="Copy marketplace command"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="5" y="5" width="9" height="9" rx="2"/><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"/></svg><span>copy</span></button></div>
+          <div class="cmd"><code>claude plugin install perfect-wave@perfect-wave --scope user</code><button class="copy" type="button" aria-label="Copy install command"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="5" y="5" width="9" height="9" rx="2"/><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"/></svg><span>copy</span></button></div>
+          <small>No daemon, no extra process. Works in the terminal and the desktop app.</small>
+        </div>
+      </div>
+      <img class="tour" src="media/tour.gif" width="640" height="738" alt="Perfect Wave pane cycling through the Files, Skills, Hunter and Status tabs">
+    </section>
+
+    <section id="log" aria-labelledby="log-title">
+      <div class="ledger-head">
+        <h2 id="log-title">One session, as the pane sees it.</h2>
+        <p>Every line is something Perfect Wave does while you work. Open one to see the real pane.</p>
+      </div>
+      <ul class="log">
+        <li><details name="log" open>
+          <summary><span class="t mono">21:04:12</span><span class="act">Edit <span>src/app.ts</span></span><span class="v seen" style="--i:0">SEEN ●</span></summary>
+          <div class="body">
+            <div>
+              <h3>A file tree that follows Claude.</h3>
+              <ul>
+                <li>The root is the session's working directory and moves when Claude <code>cd</code>s.</li>
+                <li>When Claude reads or edits a file, its folders open, the cursor jumps to it and the row glows while the tool runs.</li>
+                <li>Every row carries its git status: <code>+added −removed</code> lines and <code>M</code>, <code>A</code>, <code>D</code>, <code>??</code>. The title shows the branch with ahead and behind.</li>
+                <li>Click a file to drop <code>@path</code> into your prompt. <code>j</code> <code>k</code> <code>h</code> <code>l</code> to move, <code>/</code> to filter.</li>
+              </ul>
+            </div>
+            <img class="shot" src="media/files-live.png" width="965" height="1088" loading="lazy" alt="Files tab with git marks and the file Claude is touching highlighted">
+          </div>
+        </details></li>
+
+        <li><details name="log">
+          <summary><span class="t mono">21:05:40</span><span class="act">prompt <span>"translate this README"</span></span><span class="v saved" style="--i:1">LOW ↓ SAVED</span></summary>
+          <div class="body">
+            <div>
+              <h3>An effort router that never breaks your cache.</h3>
+              <p>Each request is scored from the prompt: risk and architecture words weigh the most, plain text work and git chores subtract. The router changes only the effort, never the model, because a model switch re-sends the whole conversation and an effort change keeps the cache hit.</p>
+              <ul>
+                <li>Plain text or chores run at <code>low</code>, routine code at <code>medium</code>, heavy or risky work at <code>high</code> with a short plan first.</li>
+                <li>Unclear prompts ask Haiku in one 5-token call with no history.</li>
+                <li>If a lowered turn takes more than 10 steps or hits 2 tool errors, the router stops lowering for 3 turns.</li>
+              </ul>
+            </div>
+            <img class="shot" src="media/effort.gif" width="640" height="148" loading="lazy" alt="Effort card changing level as Clawd acts it out">
+          </div>
+        </details></li>
+
+        <li><details name="log">
+          <summary><span class="t mono">21:06:02</span><span class="act">git push <span>--force origin main</span></span><span class="v deny" style="--i:2">DENIED</span></summary>
+          <div class="body">
+            <div>
+              <h3>Guardrails that hold in auto mode.</h3>
+              <p>Checked by the engine before a tool runs. Commands are parsed by segment, so <code>cd x &amp;&amp; git push -f</code> is caught and <code>echo "git push --force"</code> is not.</p>
+            </div>
+            <table>
+              <tbody>
+                <tr><td>git push --force, -f, --force-with-lease, --mirror</td><td style="color:var(--deny)">DENIED</td></tr>
+                <tr><td>git push to main or master</td><td style="color:var(--ask)">ASKS</td></tr>
+                <tr><td>gh pr merge</td><td style="color:var(--ask)">ASKS</td></tr>
+                <tr><td>Agent, Task, Workflow</td><td style="color:var(--ask)">ASKS</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </details></li>
+
+        <li><details name="log">
+          <summary><span class="t mono">21:07:18</span><span class="act">/wave hunter <span>pdf</span></span><span class="v review" style="--i:3">REVIEW ◐</span></summary>
+          <div class="body">
+            <div>
+              <h3>Read a skill before it runs.</h3>
+              <ul>
+                <li>Search the public skills.sh index from the pane. Nothing is executed.</li>
+                <li>Review downloads only that skill's <code>SKILL.md</code>, and Claude flags data exfiltration, <code>curl | sh</code>, credential requests and scripts that run on their own.</li>
+                <li>Install appears only after a review, still asks for confirmation, and runs with telemetry off.</li>
+              </ul>
+            </div>
+            <img class="shot" src="media/hunter.png" width="965" height="1076" loading="lazy" alt="Hunter tab with skills.sh results and review states">
+          </div>
+        </details></li>
+
+        <li><details name="log">
+          <summary><span class="t mono">21:08:30</span><span class="act">/wave skills <span>review</span></span><span class="v open" style="--i:4">14 OF 101</span></summary>
+          <div class="body">
+            <div>
+              <h3>Every skill you have, in one place.</h3>
+              <ul>
+                <li>Sorted into groups by name and plugin, each a tile with its count.</li>
+                <li>One search across names and descriptions in every group.</li>
+                <li>Click a skill and <code>/skill-name</code> is written into your prompt, ready for arguments.</li>
+              </ul>
+            </div>
+            <img class="shot" src="media/skills-filter.png" width="965" height="1057" loading="lazy" alt="Skills tab filtered by the word review">
+          </div>
+        </details></li>
+
+        <li><details name="log">
+          <summary><span class="t mono">21:09:55</span><span class="act">turn ended <span>· 199.6k tokens</span></span><span class="v saved" style="--i:5">$0.23 · CACHE 89%</span></summary>
+          <div class="body">
+            <div>
+              <h3>Measured, not estimated.</h3>
+              <p>A dashboard built from what the engine reports and the usage of each response. Nothing is estimated unless it says so.</p>
+              <ul>
+                <li>Cost, tokens, turns, cache hit rate and context usage by category.</li>
+                <li>Your 5-hour and weekly limits, time to reset and burn rate.</li>
+                <li>What the cache saved and how many requests the router adjusted.</li>
+              </ul>
+              <p class="note">Numbers shown are from one real session in the screenshot.</p>
+            </div>
+            <img class="shot" src="media/status.png" width="965" height="1587" loading="lazy" alt="Status tab with session, context, limits, savings and Ponytail cards">
+          </div>
+        </details></li>
+      </ul>
+    </section>
+
+    <section class="close" aria-labelledby="close-title">
+      <div>
+        <h2 id="close-title">Catch the next session.</h2>
+        <div class="install">
+          <p>Two commands. Then <code>/wave</code>.</p>
+          <div class="cmd"><code>claude plugin marketplace add jpazv/perfect-wave</code><button class="copy" type="button" aria-label="Copy marketplace command"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="5" y="5" width="9" height="9" rx="2"/><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"/></svg><span>copy</span></button></div>
+          <div class="cmd"><code>claude plugin install perfect-wave@perfect-wave --scope user</code><button class="copy" type="button" aria-label="Copy install command"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="5" y="5" width="9" height="9" rx="2"/><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"/></svg><span>copy</span></button></div>
+        </div>
+      </div>
+      <ul class="facts">
+        <li>Tests <b>44 passing</b></li>
+        <li>Runs <b>inside Claude Code's mod engine</b></li>
+        <li>Network <b>only what you trigger in Hunter</b></li>
+        <li>Side pane <b>from about 144 columns; <code>/wave</code> below that</b></li>
+        <li>With Ponytail full <b>−45% output tokens (benchmark)</b></li>
+        <li>License <b>MIT</b></li>
+      </ul>
+    </section>
+  </main>
+
+  <footer>
+    <span>Perfect Wave · a Claude Code mod by <a href="https://github.com/jpazv">jpazv</a></span>
+    <a href="https://github.com/jpazv/perfect-wave#known-limits">Known limits</a>
+  </footer>
+</div>
+<script>
+document.documentElement.classList.add("js");
+for (const b of document.querySelectorAll(".copy")) {
+  b.addEventListener("click", async () => {
+    const label = b.querySelector("span");
+    try {
+      await navigator.clipboard.writeText(b.previousElementSibling.textContent);
+      label.textContent = "copied";
+      b.dataset.done = "";
+    } catch {
+      label.textContent = "select it";
+    }
+    setTimeout(() => { label.textContent = "copy"; delete b.dataset.done; }, 1600);
+  });
+}
+</script>
+</body>
+</html>
